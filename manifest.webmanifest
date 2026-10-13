@@ -1,7 +1,7 @@
 {
   "name": "π Trainer",
   "short_name": "π Trainer",
-  "description": "Leer de decimalen van π, groepje voor groepje. Een app van Meester Roy.",
+  "description": "Leer de decimalen van π! Een app van Meester Roy.",
   "lang": "nl",
   "start_url": "./",
   "scope": "./",
