@@ -722,8 +722,8 @@ const HELDEN = [
     meer: "Je weet er meer dan Zu Chongzhi, de Chinese recordhouder uit het jaar 480!",
     teaser: "bij 8 decimalen versla je Zu Chongzhi uit China." },
   { need: 15, n: 15, em: "🚀", naam: "NASA", wat: "Ruimtevaart · 15 decimalen",
-    net: "Je kent er net zoveel als NASA gebruikt voor de preciesste ruimtereizen!",
-    meer: "Je kent er meer dan NASA nodig heeft voor de preciesste ruimtereizen!",
+    net: "Je kent er net zoveel als NASA gebruikt voor de meest precieze ruimtereizen!",
+    meer: "Je kent er meer dan NASA nodig heeft voor de meest precieze ruimtereizen!",
     teaser: "bij 15 decimalen ken je er net zoveel als NASA gebruikt voor ruimtereizen." },
   { need: 17, n: 16, em: "🔭", naam: "al-Kashi", wat: "Perzië, 1424 · 16 decimalen",
     meer: "Je hebt al-Kashi verslagen, de recordhouder uit 1424!",
@@ -843,7 +843,7 @@ const KAARTEN = [
       <li><span class="em">🥫</span><span><b>Blikjes.</b> Hoe groot moet het etiket om een blik zijn? Dat is de omtrek van het blik, dus ook weer π.</span></li>
       <li><span class="em">🚀</span><span><b>Ruimtevaart.</b> Bij NASA rekenen ze met π om de routes van ruimtesondes te bepalen.</span></li>
     </ul>
-    <div class="wistje"><b>Wist je dat?</b>Voor hun allerpreciesste ruimtevaartberekeningen gebruiken de rekenaars van NASA (JPL) maar 15 decimalen: 3,141592653589793. En met 37 decimalen kun je de omtrek van het hele bekende heelal uitrekenen tot op de breedte van één waterstofatoom!</div>` },
+    <div class="wistje"><b>Wist je dat?</b>Voor hun allermeest precieze ruimtevaartberekeningen gebruiken de rekenaars van NASA (JPL) maar 15 decimalen: 3,141592653589793. En met 37 decimalen kun je de omtrek van het hele bekende heelal uitrekenen tot op de breedte van één waterstofatoom!</div>` },
   { id: "nooit", open: 0, em: "♾️", titel: "π houdt nooit op", kort: "Cijfers zonder einde",
     html: `<p>De cijfers achter de komma heten <b>decimalen</b>. Bij π houden ze nooit op! En er zit geen patroon in dat zich steeds herhaalt, zoals bij 0,3333…</p>
     <p>Wiskundigen hebben al meer dan 250 jaar geleden bewezen dat dit echt zo is.</p>
@@ -1356,7 +1356,7 @@ function tekenToets() {
   const teller = $("#teller");
   if (teller) teller.textContent = t.kind === "full" ? `${getal(klaar)} ${klaar === 1 ? "cijfer" : "cijfers"} getypt` : `${getal(Math.min(klaar, totaal))} van ${getal(totaal)} cijfers`;
   const m = $("#melding");
-  if (m) { m.className = "melding " + (t.melding?.soort || ""); m.innerHTML = t.melding?.tekst || startMelding(t); }
+  if (m) { m.className = "melding " + (t.melding?.soort || ""); m.innerHTML = `<span>${t.melding?.tekst || startMelding(t)}</span>`; }
   const paneel = $("#paneel");
   if (paneel) paneel.innerHTML = t.fase === "spelen" ? toetsenbordHTML() : uitslagHTML(t);
   scrollNaarNu();
@@ -1461,7 +1461,7 @@ function tekenToetsLicht() {
   if (teller) teller.textContent = t.kind === "full" ? `${getal(t.pos - 1)} ${t.pos - 1 === 1 ? "cijfer" : "cijfers"} getypt` : `${getal(t.pos - t.start)} van ${getal(t.end - t.start + 1)} cijfers`;
   const m = $("#melding");
   if (m) {
-    if (t.melding) { m.className = "melding " + t.melding.soort; m.innerHTML = t.melding.tekst; }
+    if (t.melding) { m.className = "melding " + t.melding.soort; m.innerHTML = `<span>${t.melding.tekst}</span>`; }
     else { m.className = "melding"; m.textContent = t.pos === t.start ? startMelding(t) : `Goed bezig! Nu decimaal ${t.pos}.`; }
   }
   scrollNaarNu();
