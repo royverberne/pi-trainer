@@ -691,13 +691,30 @@ const HELDEN = [
   { need: 17, n: 16, em: "🔭", naam: "al-Kashi", wat: "Perzië, 1424 · 16 decimalen",
     meer: "Je hebt al-Kashi verslagen, de recordhouder uit 1424!",
     teaser: "bij 17 decimalen versla je al-Kashi uit 1424." },
-  { need: 35, n: 35, em: "🇳🇱", naam: "Ludolph van Ceulen", wat: "Leiden, ±1600 · 35 decimalen",
+  { need: 35, n: 35, em: "🌷", naam: "Ludolph van Ceulen", wat: "Leiden, ±1600 · 35 decimalen",
     net: "Je kent er net zoveel als er op de grafsteen van Ludolph van Ceulen staan!",
     meer: "Je kent er meer dan er op de grafsteen van Ludolph van Ceulen staan!",
     teaser: "bij 35 decimalen ken je er net zoveel als Ludolph van Ceulen." },
   { need: 37, n: 37, em: "🌌", naam: "Het hele heelal", wat: "37 decimalen",
     meer: "Met zoveel decimalen kun je de omtrek van het hele bekende heelal uitrekenen, tot op de breedte van één waterstofatoom!",
     teaser: "bij 37 decimalen kun je het hele heelal opmeten, tot op één atoom." },
+  { need: 72, n: 71, em: "✒️", naam: "Abraham Sharp", wat: "Engeland, 1699 · 71 goede decimalen",
+    meer: "Je kent er meer dan Abraham Sharp, die er in 1699 71 uitrekende!",
+    teaser: "bij 72 decimalen versla je Abraham Sharp uit 1699." },
+  { need: 100, n: 100, em: "💯", naam: "John Machin", wat: "Engeland, 1706 · 100 decimalen",
+    net: "Je kent er net zoveel als John Machin in 1706: precies 100!",
+    meer: "Je kent er meer dan John Machin, die er in 1706 100 uitrekende!",
+    teaser: "bij 100 decimalen ken je er net zoveel als John Machin uit 1706." },
+  { need: 113, n: 112, em: "📘", naam: "Thomas de Lagny", wat: "Frankrijk, 1719 · 112 goede decimalen",
+    meer: "Je kent meer goede decimalen dan de Franse wiskundige Thomas de Lagny uit 1719!",
+    teaser: "bij 113 decimalen versla je Thomas de Lagny uit Frankrijk." },
+  { need: 127, n: 126, em: "📗", naam: "Jurij Vega", wat: "Sloveens wiskundige, 1789 · 126 goede decimalen",
+    meer: "Je hebt Jurij Vega verslagen! Zijn record uit 1789 bleef 52 jaar staan.",
+    teaser: "bij 127 decimalen versla je Jurij Vega, wiens record 52 jaar standhield." },
+  { need: 200, n: 200, em: "🧠", naam: "Zacharias Dase", wat: "Duits rekenwonder, 1844 · 200 decimalen",
+    net: "Je kent er net zoveel als het Duitse rekenwonder Zacharias Dase in 1844: 200!",
+    meer: "Je kent er meer dan het Duitse rekenwonder Zacharias Dase uit 1844!",
+    teaser: "bij 200 decimalen ken je er net zoveel als rekenwonder Zacharias Dase." },
   { need: 528, n: 527, em: "✍️", naam: "William Shanks", wat: "Engeland, 1873 · 527 goede decimalen",
     meer: "Je kent meer goede decimalen dan William Shanks in 1873!",
     teaser: "bij 528 decimalen versla je William Shanks uit 1873." },
@@ -820,7 +837,7 @@ const KAARTEN = [
     <p>Het Griekse woord voor de omtrek van een cirkel is <b>periphereia</b>. Dat begint met een p!</p>
     <p>In <b>1706</b> gebruikte de Britse wiskundige <b>William Jones</b> als eerste alleen de letter π voor dit getal. Vanaf 1736 deed de beroemde Zwitserse wiskundige <b>Leonhard Euler</b> het ook. Daarna nam bijna iedereen het over.</p>
     <div class="wistje"><b>Wist je dat?</b>De hoofdletter ziet er zo uit: Π. Voor het getal gebruiken we altijd de kleine letter π.</div>` },
-  { id: "ludolph", open: 50, em: "🇳🇱", titel: "Ludolph van Ceulen", kort: "Een π-held uit Nederland",
+  { id: "ludolph", open: 50, em: "🌷", titel: "Ludolph van Ceulen", kort: "Een π-held uit Nederland",
     html: `<p><b>Ludolph van Ceulen</b> werd in 1540 geboren in Hildesheim, in Duitsland. Hij verhuisde naar Nederland en woonde in Delft en later in Leiden.</p>
     <p>Hij was schermleraar én rekenmeester. Later werd hij professor aan de universiteit van Leiden.</p>
     <p>Hij rekende π uit op dezelfde manier als Archimedes, maar met veelhoeken met ontzettend veel hoeken. Dat kostte heel veel tijd, want alles ging met pen en papier. Uiteindelijk vond hij <b>35 decimalen</b>. Niemand ter wereld wist er toen meer!</p>
@@ -841,6 +858,8 @@ const KAARTEN = [
       <li><span class="jaar">±480</span><span class="lijn"></span><span class="wat"><b>Zu Chongzhi</b>7 decimalen</span></li>
       <li><span class="jaar">1424</span><span class="lijn"></span><span class="wat"><b>al-Kashi</b>16 decimalen</span></li>
       <li><span class="jaar">±1600</span><span class="lijn"></span><span class="wat"><b>Ludolph van Ceulen</b>35 decimalen</span></li>
+      <li><span class="jaar">1706</span><span class="lijn"></span><span class="wat"><b>John Machin</b>100 decimalen</span></li>
+      <li><span class="jaar">1844</span><span class="lijn"></span><span class="wat"><b>Zacharias Dase</b>200 decimalen</span></li>
       <li><span class="jaar">1873</span><span class="lijn"></span><span class="wat"><b>William Shanks</b>707 decimalen, maar vanaf decimaal 528 fout</span></li>
       <li><span class="jaar">1949</span><span class="lijn"></span><span class="wat"><b>ENIAC-computer</b>2037 decimalen in 70 uur</span></li>
       <li><span class="jaar">2025</span><span class="lijn"></span><span class="wat"><b>StorageReview</b>314 biljoen decimalen in 110 dagen</span></li>
@@ -1154,6 +1173,8 @@ function vCards(p) {
       <li><a href="https://gigazine.net/gsc_news/en/20251226-pi-314-trillion-digits" target="_blank" rel="noopener">GIGAZINE: Pi calculated to 314 trillion digits</a></li>
       <li><a href="https://guinnessworldrecords.com/world-records/most-pi-places-memorised" target="_blank" rel="noopener">Guinness World Records: Most pi places memorised</a></li>
       <li><a href="https://en.wikipedia.org/wiki/Six_nines_in_pi" target="_blank" rel="noopener">Wikipedia: Six nines in pi</a></li>
+      <li><a href="https://mathlair.allfunandgames.ca/chronology.php" target="_blank" rel="noopener">Math Lair: Chronology of calculating π</a> (Sharp, de Lagny)</li>
+      <li><a href="https://en.wikipedia.org/wiki/John_Machin" target="_blank" rel="noopener">Wikipedia: John Machin</a>, <a href="https://en.wikipedia.org/wiki/Thomas_Fantet_de_Lagny" target="_blank" rel="noopener">Thomas Fantet de Lagny</a>, <a href="https://en.wikipedia.org/wiki/Jurij_Vega" target="_blank" rel="noopener">Jurij Vega</a>, <a href="https://en.wikipedia.org/wiki/Zacharias_Dase" target="_blank" rel="noopener">Zacharias Dase</a></li>
     </ul>
   </details>`;
 }
