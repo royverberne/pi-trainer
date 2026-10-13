@@ -1555,11 +1555,11 @@ function spraakHTML() {
   if (sp.fout && !sp.cijfers.length) return `<div class="spraak"><p class="foutje">${esc(sp.fout)}</p><div class="rij"><button class="knop licht" data-act="spraakwis">Sluiten</button></div></div>`;
   const chips = sp.cijfers.map((c, i) => `<button class="spraak-cijfer" data-act="spraakweg" data-i="${i}" aria-label="Haal ${c} weg">${c}</button>`).join("");
   return `<div class="spraak">
-    <p><b>${sp.luistert ? `<span class="luister-stip"></span> Ik luister…` : "Dit verstond ik:"}</b> ${sp.luistert ? "Zeg de cijfers één voor één." : "Klopt het? Tik op een cijfer om het weg te halen."}</p>
+    <p><b>${sp.luistert ? `<span class="luister-stip"></span> Ik luister…` : "Dit verstond ik:"}</b> ${sp.luistert ? "Zeg de cijfers maar, pauzes mogen. Tik op Klaar als je klaar bent." : "Klopt het? Tik op een cijfer om het weg te halen."}</p>
     <div class="spraak-cijfers cijfers">${chips || `<span class="zacht">Nog niets gehoord.</span>`}</div>
     ${sp.fout ? `<p class="foutje">${esc(sp.fout)}</p>` : ""}
     <div class="rij">
-      ${sp.luistert ? `<button class="knop licht" data-act="mic">Stop met luisteren</button>` : `
+      ${sp.luistert ? `<button class="knop oranje" data-act="mic">✋ Klaar</button>` : `
         <button class="knop oranje" data-act="spraakok" ${sp.cijfers.length ? "" : "disabled"}>Klopt, controleer!</button>
         ${sp.cijfers.length ? `<button class="knop licht" data-act="micverder">🎤 Verder inspreken</button>` : ""}
         <button class="knop licht" data-act="mic">Opnieuw</button>
@@ -1573,37 +1573,60 @@ function tekenSpraak() {
 function startSpraak(verder = false) {
   if (!SR || !state.test || state.test.fase !== "spelen") return;
   if (state.spraak?.luistert) { stopSpraak(); return; }
-  const t = state.test;
-  // "Verder inspreken" houdt de cijfers die al verstaan zijn en plakt de nieuwe erachter
   const basis = verder && state.spraak ? state.spraak.cijfers.slice() : [];
-  state.spraak = { luistert: true, cijfers: basis.slice(), basis, fout: null };
-  const vanafBegin = t.pos === 1 && t.start === 1 && basis.length === 0;
-  try {
-    herkenner = new SR();
-    // Eén zin per keer: Chrome op Android herhaalt bij doorlopend luisteren steeds de hele zin
-    herkenner.lang = "nl-NL"; herkenner.interimResults = true; herkenner.continuous = false; herkenner.maxAlternatives = 1;
-    herkenner.onresult = e => {
-      if (!state.spraak) return;
-      // Alleen het laatste resultaat gebruiken: daarin staat altijd de volledige, nieuwste versie
-      const r = e.results[e.results.length - 1];
-      const tekst = r && r[0] ? r[0].transcript : "";
-      state.spraak.cijfers = state.spraak.basis.concat(spraakNaarCijfers(tekst, vanafBegin));
-      tekenSpraak();
-    };
-    herkenner.onerror = e => {
-      const uitleg = { "not-allowed": "De microfoon mag hier niet gebruikt worden. Geef de browser toestemming, of typ de cijfers.", "service-not-allowed": "Spraakherkenning is hier niet toegestaan. Typ de cijfers maar.", "no-speech": "Ik hoorde niets. Probeer het nog eens, wat harder.", "audio-capture": "Ik kan geen microfoon vinden.", network: "Spraakherkenning heeft internet nodig.", aborted: "" }[e.error] ?? "Spraakherkenning lukte niet. Typ de cijfers maar.";
-      if (state.spraak) { if (uitleg) state.spraak.fout = uitleg; state.spraak.luistert = false; }
-      tekenSpraak();
-    };
-    herkenner.onend = () => { if (state.spraak) state.spraak.luistert = false; tekenSpraak(); };
-    herkenner.start();
-  } catch (e) {
-    state.spraak.fout = "Spraakherkenning kon niet starten. Typ de cijfers maar.";
-    state.spraak.luistert = false;
-  }
+  state.spraak = { luistert: true, doorgaan: true, cijfers: basis.slice(), basis, fout: null, stilte: 0 };
+  luisterRonde();
   tekenSpraak();
 }
-function stopSpraak() { try { herkenner && herkenner.stop(); } catch (e) {} herkenner = null; if (state.spraak) { state.spraak.luistert = false; tekenSpraak(); } }
+/* Eén luisterronde. Chrome op Android herhaalt bij doorlopend luisteren steeds de hele zin,
+   daarom luisteren we per zin en starten we na elke pauze vanzelf een nieuwe ronde.
+   De cijfers van eerdere rondes blijven staan (basis), de nieuwe komen erachter. */
+function luisterRonde() {
+  const sp = state.spraak, t = state.test;
+  if (!sp || !t) return;
+  sp.basis = sp.cijfers.slice();
+  const vanafBegin = t.pos === 1 && t.start === 1 && sp.basis.length === 0;
+  let gehoord = false;
+  try {
+    const h = herkenner = new SR();
+    h.lang = "nl-NL"; h.interimResults = true; h.continuous = false; h.maxAlternatives = 1;
+    h.onresult = e => {
+      if (state.spraak !== sp) return;
+      const r = e.results[e.results.length - 1];   // alleen de nieuwste, volledige versie
+      const tekst = r && r[0] ? r[0].transcript : "";
+      const nieuw = spraakNaarCijfers(tekst, vanafBegin);
+      if (nieuw.length) { gehoord = true; sp.stilte = 0; }
+      sp.cijfers = sp.basis.concat(nieuw);
+      tekenSpraak();
+    };
+    h.onerror = e => {
+      if (state.spraak !== sp) return;
+      if (e.error === "no-speech" || e.error === "aborted") return;   // gewoon een stille ronde
+      sp.fout = { "not-allowed": "De microfoon mag hier niet gebruikt worden. Geef de browser toestemming, of typ de cijfers.", "service-not-allowed": "Spraakherkenning is hier niet toegestaan. Typ de cijfers maar.", "audio-capture": "Ik kan geen microfoon vinden.", network: "Spraakherkenning heeft internet nodig." }[e.error] || "Spraakherkenning lukte niet. Typ de cijfers maar.";
+      sp.doorgaan = false; sp.luistert = false;
+      tekenSpraak();
+    };
+    h.onend = () => {
+      if (state.spraak !== sp) return;
+      if (!gehoord) sp.stilte++;
+      // Vanzelf verder luisteren, tot het kind op Klaar tikt of twee rondes lang niets zegt
+      if (sp.doorgaan && sp.stilte < 2 && state.test && state.test.fase === "spelen") { luisterRonde(); return; }
+      sp.luistert = false; sp.doorgaan = false;
+      if (!sp.cijfers.length) sp.fout = "Ik hoorde niets. Probeer het nog eens, wat harder.";
+      tekenSpraak();
+    };
+    h.start();
+  } catch (e) {
+    sp.fout = "Spraakherkenning kon niet starten. Typ de cijfers maar.";
+    sp.luistert = false; sp.doorgaan = false;
+  }
+}
+function stopSpraak() {
+  if (state.spraak) state.spraak.doorgaan = false;
+  try { herkenner && herkenner.stop(); } catch (e) {}
+  herkenner = null;
+  if (state.spraak) { state.spraak.luistert = false; tekenSpraak(); }
+}
 function spraakControleer() {
   const cs = (state.spraak?.cijfers || []).slice();
   state.spraak = null;
