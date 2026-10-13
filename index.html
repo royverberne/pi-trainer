@@ -1552,15 +1552,17 @@ function spraakNaarCijfers(tekst, vanafBegin) {
 function spraakHTML() {
   const sp = state.spraak;
   if (!sp) return store.settings.speech && SR ? `<p class="zacht">Tik op 🎤 en zeg de cijfers één voor één. Je ziet eerst wat ik verstond, daarna controleer ik het. Begin je met "drie komma"? Geen probleem, dat sla ik over.</p>` : `<p class="zacht alleen-pc">Tip: je kunt ook de cijfertoetsen van je computer gebruiken.</p>`;
-  if (sp.fout) return `<div class="spraak"><p class="foutje">${esc(sp.fout)}</p><div class="rij"><button class="knop licht" data-act="spraakwis">Sluiten</button></div></div>`;
+  if (sp.fout && !sp.cijfers.length) return `<div class="spraak"><p class="foutje">${esc(sp.fout)}</p><div class="rij"><button class="knop licht" data-act="spraakwis">Sluiten</button></div></div>`;
   const chips = sp.cijfers.map((c, i) => `<button class="spraak-cijfer" data-act="spraakweg" data-i="${i}" aria-label="Haal ${c} weg">${c}</button>`).join("");
   return `<div class="spraak">
     <p><b>${sp.luistert ? `<span class="luister-stip"></span> Ik luister…` : "Dit verstond ik:"}</b> ${sp.luistert ? "Zeg de cijfers één voor één." : "Klopt het? Tik op een cijfer om het weg te halen."}</p>
     <div class="spraak-cijfers cijfers">${chips || `<span class="zacht">Nog niets gehoord.</span>`}</div>
+    ${sp.fout ? `<p class="foutje">${esc(sp.fout)}</p>` : ""}
     <div class="rij">
       ${sp.luistert ? `<button class="knop licht" data-act="mic">Stop met luisteren</button>` : `
         <button class="knop oranje" data-act="spraakok" ${sp.cijfers.length ? "" : "disabled"}>Klopt, controleer!</button>
-        <button class="knop licht" data-act="mic">Opnieuw inspreken</button>
+        ${sp.cijfers.length ? `<button class="knop licht" data-act="micverder">🎤 Verder inspreken</button>` : ""}
+        <button class="knop licht" data-act="mic">Opnieuw</button>
         <button class="knop licht" data-act="spraakwis">Wissen</button>`}
     </div></div>`;
 }
@@ -1568,22 +1570,29 @@ function tekenSpraak() {
   const plek = $("#spraak-plek"); if (plek) plek.innerHTML = spraakHTML();
   const mic = document.querySelector(".toets.mic"); if (mic) mic.classList.toggle("aan", !!state.spraak?.luistert);
 }
-function startSpraak() {
+function startSpraak(verder = false) {
   if (!SR || !state.test || state.test.fase !== "spelen") return;
   if (state.spraak?.luistert) { stopSpraak(); return; }
   const t = state.test;
-  state.spraak = { luistert: true, cijfers: [], fout: null };
+  // "Verder inspreken" houdt de cijfers die al verstaan zijn en plakt de nieuwe erachter
+  const basis = verder && state.spraak ? state.spraak.cijfers.slice() : [];
+  state.spraak = { luistert: true, cijfers: basis.slice(), basis, fout: null };
+  const vanafBegin = t.pos === 1 && t.start === 1 && basis.length === 0;
   try {
     herkenner = new SR();
-    herkenner.lang = "nl-NL"; herkenner.interimResults = true; herkenner.continuous = true; herkenner.maxAlternatives = 1;
+    // Eén zin per keer: Chrome op Android herhaalt bij doorlopend luisteren steeds de hele zin
+    herkenner.lang = "nl-NL"; herkenner.interimResults = true; herkenner.continuous = false; herkenner.maxAlternatives = 1;
     herkenner.onresult = e => {
-      let tekst = ""; for (const r of e.results) tekst += r[0].transcript + " ";
-      state.spraak.cijfers = spraakNaarCijfers(tekst, t.pos === 1 && t.start === 1);
+      if (!state.spraak) return;
+      // Alleen het laatste resultaat gebruiken: daarin staat altijd de volledige, nieuwste versie
+      const r = e.results[e.results.length - 1];
+      const tekst = r && r[0] ? r[0].transcript : "";
+      state.spraak.cijfers = state.spraak.basis.concat(spraakNaarCijfers(tekst, vanafBegin));
       tekenSpraak();
     };
     herkenner.onerror = e => {
-      const uitleg = { "not-allowed": "De microfoon mag hier niet gebruikt worden. Geef de browser toestemming, of typ de cijfers.", "service-not-allowed": "Spraakherkenning is hier niet toegestaan. Typ de cijfers maar.", "no-speech": "Ik hoorde niets. Probeer het nog eens, wat harder.", "audio-capture": "Ik kan geen microfoon vinden.", network: "Spraakherkenning heeft internet nodig." }[e.error] || "Spraakherkenning lukte niet. Typ de cijfers maar.";
-      if (state.spraak) { state.spraak.fout = uitleg; state.spraak.luistert = false; }
+      const uitleg = { "not-allowed": "De microfoon mag hier niet gebruikt worden. Geef de browser toestemming, of typ de cijfers.", "service-not-allowed": "Spraakherkenning is hier niet toegestaan. Typ de cijfers maar.", "no-speech": "Ik hoorde niets. Probeer het nog eens, wat harder.", "audio-capture": "Ik kan geen microfoon vinden.", network: "Spraakherkenning heeft internet nodig.", aborted: "" }[e.error] ?? "Spraakherkenning lukte niet. Typ de cijfers maar.";
+      if (state.spraak) { if (uitleg) state.spraak.fout = uitleg; state.spraak.luistert = false; }
       tekenSpraak();
     };
     herkenner.onend = () => { if (state.spraak) state.spraak.luistert = false; tekenSpraak(); };
@@ -1817,6 +1826,7 @@ const ACTIES = {
   stoptoets: () => { stopSpraak(); state.test = null; ga("home"); },
   cijfer: el => typCijfer(el.dataset.d),
   mic: () => startSpraak(),
+  micverder: () => startSpraak(true),
   spraakweg: el => { state.spraak.cijfers.splice(+el.dataset.i, 1); tekenSpraak(); },
   spraakwis: () => { stopSpraak(); state.spraak = null; tekenSpraak(); },
   spraakok: () => spraakControleer(),
