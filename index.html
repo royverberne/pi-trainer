@@ -1327,6 +1327,12 @@ function typCijfer(d) {
   if (!t || t.fase !== "spelen") return;
   const i = t.pos;
   const goed = cijfer(i);
+  // Gewoonte "3 komma...": een 3 als allereerste toets telt niet als fout
+  if (i === 1 && t.start === 1 && d === "3" && t.retype === null) {
+    t.melding = { soort: "hint", tekst: "Die 3 staat er al! Begin met het eerste cijfer na de komma." };
+    tekenToetsLicht();
+    return;
+  }
   if (t.retype !== null) {
     if (d === goed) {
       t.status[i] = "hersteld"; t.retype = null; t.melding = { soort: "goed", tekst: "Goed overgetypt! Ga maar verder." };
@@ -1526,14 +1532,17 @@ const WOORDEN = { nul: "0", een: "1", "één": "1", "eén": "1", twee: "2", drie
   twintig: "20", dertig: "30", veertig: "40", vijftig: "50", zestig: "60", zeventig: "70", tachtig: "80", negentig: "90", honderd: "100" };
 function spraakNaarCijfers(tekst, vanafBegin) {
   let s = " " + tekst.toLowerCase() + " ";
-  if (vanafBegin) s = s.replace(/^\s*(3|drie)\s*(,|\.|komma|punt)\s*/, " ");
+  if (vanafBegin) s = s.replace(/^\s*((pi|pie|π)\s*(is|=)?\s*)?(3|drie)\s*(,|\.|komma|punt)?\s*/, " ");
   s = s.replace(/(een|één|twee|drie|vier|vijf|zes|zeven|acht|negen)\s*[eë]n\s*(twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig)/g, (m, a, b) => " " + WOORDEN[b][0] + WOORDEN[a] + " ");
   s = s.replace(/[a-zà-ÿ]+/g, w => (WOORDEN[w] !== undefined ? " " + WOORDEN[w] + " " : " "));
-  return s.match(/\d/g) || [];
+  const cijfers = s.match(/\d/g) || [];
+  // Vanaf het begin is decimaal 1 altijd een 1: een 3 vooraan is dus altijd "3 komma" en mag weg
+  if (vanafBegin && cijfers[0] === "3") cijfers.shift();
+  return cijfers;
 }
 function spraakHTML() {
   const sp = state.spraak;
-  if (!sp) return store.settings.speech && SR ? `<p class="zacht">Tik op 🎤 en zeg de cijfers één voor één. Je ziet eerst wat ik verstond, daarna controleer ik het.</p>` : `<p class="zacht alleen-pc">Tip: je kunt ook de cijfertoetsen van je computer gebruiken.</p>`;
+  if (!sp) return store.settings.speech && SR ? `<p class="zacht">Tik op 🎤 en zeg de cijfers één voor één. Je ziet eerst wat ik verstond, daarna controleer ik het. Begin je met "drie komma"? Geen probleem, dat sla ik over.</p>` : `<p class="zacht alleen-pc">Tip: je kunt ook de cijfertoetsen van je computer gebruiken.</p>`;
   if (sp.fout) return `<div class="spraak"><p class="foutje">${esc(sp.fout)}</p><div class="rij"><button class="knop licht" data-act="spraakwis">Sluiten</button></div></div>`;
   const chips = sp.cijfers.map((c, i) => `<button class="spraak-cijfer" data-act="spraakweg" data-i="${i}" aria-label="Haal ${c} weg">${c}</button>`).join("");
   return `<div class="spraak">
