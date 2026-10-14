@@ -1415,10 +1415,18 @@ function typCijfer(d) {
   if (d === goed) {
     t.status[i] = "ok";
     if (t.melding && t.melding.soort !== "hint") t.melding = null;
+    const wachtrij = t.wachtrij;
     volgende();
+    // Ontbrekend dubbel cijfer zelf getypt: ga verder met de rest van wat het kind zei
+    if (wachtrij && state.test === t && t.fase === "spelen" && cijfer(t.pos) !== t.wachtCijfer) {
+      t.wachtrij = null; t.melding = null;
+      verwerkCijfers(wachtrij);
+      if (state.test === t && t.fase === "spelen" && !t.melding) { t.melding = { soort: "goed", tekst: "Top! Daarna ging ik verder met wat je zei." }; tekenToets(); }
+    }
     return;
   }
   // Fout
+  t.wachtrij = null;
   t.errors++;
   if (!t.eersteFout) t.eersteFout = i;
   geluid("fout");
@@ -1609,7 +1617,7 @@ function spraakNaarCijfers(tekst, vanafBegin) {
 }
 function spraakHTML() {
   const sp = state.spraak;
-  if (!sp) return store.settings.speech && SR ? `<p class="zacht">Tik op 🎤 en zeg de cijfers één voor één. Je ziet eerst wat ik verstond, daarna controleer ik het. Begin je met "drie komma"? Geen probleem, dat sla ik over.</p>` : `<p class="zacht alleen-pc">Tip: je kunt ook de cijfertoetsen van je computer gebruiken.</p>`;
+  if (!sp) return store.settings.speech && SR ? `<p class="zacht">Tik op 🎤 en zeg de cijfers één voor één. Je ziet eerst wat ik verstond, daarna controleer ik het. Begin je met "drie komma"? Geen probleem, dat sla ik over. Zeg twee dezelfde cijfers los van elkaar: "drie… drie".</p>` : `<p class="zacht alleen-pc">Tip: je kunt ook de cijfertoetsen van je computer gebruiken.</p>`;
   if (sp.fout && !sp.cijfers.length) return `<div class="spraak"><p class="foutje">${esc(sp.fout)}</p><div class="rij"><button class="knop licht" data-act="spraakwis">Sluiten</button></div></div>`;
   const chips = sp.cijfers.map((c, i) => `<button class="spraak-cijfer" data-act="spraakweg" data-i="${i}" aria-label="Haal ${c} weg">${c}</button>`).join("");
   return `<div class="spraak">
@@ -1631,6 +1639,7 @@ function tekenSpraak() {
 function startSpraak(verder = false) {
   if (!SR || !state.test || state.test.fase !== "spelen") return;
   if (state.spraak?.luistert) { stopSpraak(); return; }
+  if (state.test?.wachtrij) { state.test.wachtrij = null; state.test.melding = null; }
   const basis = verder && state.spraak ? state.spraak.cijfers.slice() : [];
   state.spraak = { luistert: true, doorgaan: true, cijfers: basis.slice(), basis, fout: null, stilte: 0 };
   luisterRonde();
@@ -1688,9 +1697,37 @@ function stopSpraak() {
 function spraakControleer() {
   const cs = (state.spraak?.cijfers || []).slice();
   state.spraak = null;
-  for (const c of cs) {
+  verwerkCijfers(cs);
+}
+/* Twee (of meer) dezelfde cijfers achter elkaar, zoals 33, hoort spraakherkenning soms als één.
+   Herkennen we dat, dan rekenen we het niet fout: het kind typt het ontbrekende cijfer zelf
+   en daarna gaan we verder met de rest van wat het zei. */
+const MEERVOUD = ["nullen", "enen", "tweeën", "drieën", "vieren", "vijven", "zessen", "zevens", "achten", "negens"];
+const AANTAL = ["", "één", "twee", "drie", "vier", "vijf", "zes", "zeven"];
+const groot = w => w.charAt(0).toUpperCase() + w.slice(1);
+function ingeslikt(t, c) {
+  const i = t.pos, goed = cijfer(i);
+  if (t.retype !== null || c === goed || i <= t.start || cijfer(i - 1) !== goed) return 0;
+  let j = i;
+  while (j <= t.end && cijfer(j) === goed) j++;
+  if (j > t.end || c !== cijfer(j)) return 0;
+  return j - i;   // zoveel dezelfde cijfers zijn er ingeslikt
+}
+function verwerkCijfers(cs) {
+  for (let k = 0; k < cs.length; k++) {
     const t = state.test;
     if (!t || t.fase !== "spelen") break;
+    const c = cs[k];
+    const mist = ingeslikt(t, c);
+    if (mist) {
+      const goed = cijfer(t.pos);
+      let begin = t.pos - 1; while (begin > 1 && cijfer(begin - 1) === goed) begin--;
+      const rij = t.pos + mist - begin;
+      t.wachtrij = cs.slice(k); t.wachtCijfer = goed;
+      t.melding = { soort: "hint", tekst: `${groot(AANTAL[rij] || String(rij))} ${MEERVOUD[goed]} achter elkaar hoor ik soms als één. Typ ${mist === 1 ? `de volgende <b>${goed}</b>` : `de andere ${AANTAL[mist] || mist} ${MEERVOUD[goed]}`} zelf, dan ga ik verder.` };
+      tekenToets();
+      return;
+    }
     const hadRetype = t.retype !== null;
     const voorErr = t.errors;
     typCijfer(c);
