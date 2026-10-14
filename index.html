@@ -648,9 +648,9 @@ function laad() {
 }
 let store = laad();
 if (!store || typeof store !== "object" || !store.profiles) {
-  store = { v: 1, active: null, profiles: {}, settings: { theme: "system", sound: false, speech: false } };
+  store = { v: 1, active: null, profiles: {}, settings: { theme: "system", sound: true, speech: true } };
 }
-store.settings = Object.assign({ theme: "system", sound: false, speech: false }, store.settings || {});
+store.settings = Object.assign({ theme: "system", sound: true, speech: true }, store.settings || {});
 /* Oudere profielen krijgen een persoonlijk doel: de eerstvolgende mijlpaal, minstens 25 */
 Object.values(store.profiles).forEach(p => {
   if (!(p.goal > 0)) { p.goal = Math.max(25, MIJLPALEN.find(m => m > p.mastered) || MAX); p.goalDone = p.mastered >= p.goal ? p.goal : 0; }
