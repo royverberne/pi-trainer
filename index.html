@@ -406,6 +406,11 @@ details.uitklap[open] summary { margin-bottom: 10px; }
 .dip-rand { position: relative; height: 100%; border: 0.55cqw solid var(--navy); outline: 0.25cqw solid var(--cyaan); outline-offset: -1.3cqw; border-radius: 1.2cqw;
   display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 0.9cqw; padding: 3cqw 5cqw 4.5cqw;
   background: radial-gradient(circle at 50% 0%, rgba(76, 184, 222, 0.14), transparent 60%), #ffffff; }
+.dip-watermerk { position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%) rotate(-8deg); z-index: 0; pointer-events: none;
+  font: 700 62cqw/1 var(--font-pi); color: rgba(201, 162, 39, 0.12); }
+.diploma.zilver .dip-watermerk { color: rgba(111, 124, 137, 0.08); }
+.dip-rand > :not(.dip-watermerk) { z-index: 1; }
+.dip-titel, .dip-klein, .dip-naam, .dip-prestatie { position: relative; }
 .dip-kop { position: absolute; top: 3.2cqw; left: 4cqw; display: flex; align-items: center; gap: 1cqw; font: 900 1.9cqw var(--font); color: var(--navy); }
 .dip-pi { width: 3.6cqw; height: 3.6cqw; border-radius: 50%; display: grid; place-items: center; color: #fff; font: 700 2.4cqw var(--font-pi);
   background: linear-gradient(120deg, var(--navy), var(--blauw) 58%, var(--cyaan)); padding-bottom: 0.3cqw; }
@@ -1313,8 +1318,9 @@ function vDiploma(p) {
   return `${terugKnop()}
   <div class="diploma-knoppen rij"><button class="knop oranje groot" data-act="printdiploma">🖨️ Diploma afdrukken</button></div>
   <div class="diploma-vel">
-    <article class="diploma" aria-label="Diploma van ${esc(p.name)}">
+    <article class="diploma ${master ? "goud" : "zilver"}" aria-label="Diploma van ${esc(p.name)}">
       <div class="dip-rand">
+        <span class="dip-watermerk" aria-hidden="true">π</span>
         <div class="dip-kop"><span class="dip-pi">π</span><span>π Trainer</span></div>
         <h2 class="dip-titel">π Diploma</h2>
         <p class="dip-klein">Dit diploma is uitgereikt aan</p>
