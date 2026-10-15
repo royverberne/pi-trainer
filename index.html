@@ -2049,9 +2049,47 @@ function toepasThema() {
   if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
   else document.documentElement.removeAttribute("data-theme");
 }
+/* ---------- Vegen of de terugknop van de telefoon = "Terug" in de app ----------
+   Buiten het startscherm staat er altijd één extra stap in de geschiedenis van de browser.
+   Veegt het kind terug, dan vangen we dat op en gaan we binnen de app terug, in plaats van de app te sluiten. */
+const terugAan = (() => { try { return window.top === window && !!history.pushState; } catch (e) { return false; } })();
+let extraStap = false, negeerTerug = false;
+function zorgExtraStap() {
+  if (!terugAan || extraStap) return;
+  if (negeerTerug) { setTimeout(zorgExtraStap, 60); return; }   // er loopt nog een stap terug: even wachten
+  try { history.pushState({ piTrainer: true }, ""); extraStap = true; } catch (e) {}
+}
+function haalExtraStapWeg() {
+  if (!terugAan || !extraStap) return;
+  extraStap = false; negeerTerug = true;
+  try { history.back(); } catch (e) { negeerTerug = false; }
+}
+function terugDoel(view) {
+  if (view === "card") return "cards";
+  if (view === "profiles" && !prof()) return null;
+  return "home";
+}
+if (terugAan) window.addEventListener("popstate", () => {
+  if (negeerTerug) { negeerTerug = false; return; }
+  extraStap = false;
+  // Een venster open? Dan sluit terugvegen alleen het venster
+  if ($("#modal-plek").innerHTML) { sluitModal(); if (state.view !== "home") zorgExtraStap(); return; }
+  // Midden in een toets: eerst vragen, zodat een per ongeluk geveegde toets niet verloren gaat
+  if (state.view === "test" && state.test && (state.test.fase === "spelen" || state.test.fase === "kijken")) {
+    zorgExtraStap();
+    bevestig("Stoppen met de toets?", "Je stopt met deze toets. Wat je nu typte, telt niet mee.", "Ja, stoppen", () => ACTIES.stoptoets());
+    return;
+  }
+  const doel = terugDoel(state.view);
+  if (!doel || doel === state.view) return;
+  if (state.view === "test") { stopSpraak(); state.test = null; }
+  ga(doel);
+});
+
 function ga(view) {
   if (state.view === "test" && view !== "test") stopSpraak();
   state.view = view;
+  if (view === "home" || !prof()) haalExtraStapWeg(); else zorgExtraStap();
   render();
   window.scrollTo({ top: 0, behavior: "auto" });
   // Op een telefoon schuift de toets net onder de kop door, zodat het hele toetsenbord in beeld past
