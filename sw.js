@@ -1,7 +1,7 @@
 /* π Trainer: offline werken.
    De app zelf (index.html) halen we eerst van internet, zodat iedereen meteen de nieuwste versie krijgt.
    Lukt dat niet (geen of slechte wifi), dan gebruiken we de bewaarde kopie. Spraak werkt offline niet. */
-const CACHE = "pi-trainer-v3";
+const CACHE = "pi-trainer-v4";
 const BESTANDEN = ["./", "index.html", "pi-decimalenlijst.pdf", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-512-maskable.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
