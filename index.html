@@ -1173,11 +1173,6 @@ function vHome(p) {
       <p class="zacht">Decimaal ${g.start} t/m ${g.end}${pendingNu ? " · groepje al goed, nu nog de hele reeks" : ""}</p>`}
       <button class="knop oranje groot breed" data-act="${g.klaar ? "go" : "study"}" data-to="full">${g.klaar ? "Naar de uitdaging" : p.mastered === 0 && !pendingNu ? "Begin met groepje 1" : `Verder met groepje ${g.nr}`}</button>
       ${p.mastered === 0 ? `<p class="tip">Ken je al decimalen van π? Doe dan eerst de <button class="linkknop" data-act="go" data-to="full">hele-reeks-uitdaging</button> en spring meteen vooruit.</p>` : ""}
-      ${held || volgend ? `<div class="helden-blok">
-        <span class="label">🪜 Jouw π-ladder</span>
-        ${held ? `<p class="held">${held.em} ${heldZin(held, p.mastered)}</p>` : ""}
-        ${volgend ? `<p class="zacht volgende-held">${held ? "Volgende stap" : "Eerste stap"}: ${volgend.teaser}</p>` : ""}
-      </div>` : ""}
     </div>
   </section>
   <section class="tegels" aria-label="Menu">
