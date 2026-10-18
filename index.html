@@ -1424,15 +1424,9 @@ function vSettings(p) {
       <div class="rij"><button class="knop licht" data-act="go" data-to="profiles">👥 Ander profiel kiezen</button></div>
     </div>
     <div class="kaartje">
-      <h2>Inspreken en kleuren</h2>
+      <h2>Inspreken</h2>
       <div class="schakel-rij"><div><b>🎤 Cijfers inspreken</b><p class="zacht">${spraakKan ? "Naast typen kun je de cijfers ook hardop zeggen. Vraag eerst toestemming aan je juf, meester of ouders." : "Deze browser kan geen spraak herkennen. Inspreken werkt in Chrome, Edge en Safari."}</p></div>
         <button class="schakel" role="switch" aria-label="Cijfers inspreken" aria-checked="${spraakKan && s.speech}" data-act="toggle" data-key="speech" ${spraakKan ? "" : "disabled"}></button></div>
-      <div><span class="label">Kleuren</span></div>
-      <div class="segment" role="group" aria-label="Kleuren">
-        <button data-act="theme" data-theme="system" aria-pressed="${s.theme === "system"}">Automatisch</button>
-        <button data-act="theme" data-theme="light" aria-pressed="${s.theme === "light"}">Licht</button>
-        <button data-act="theme" data-theme="dark" aria-pressed="${s.theme === "dark"}">Donker</button>
-      </div>
     </div>
     <div class="kaartje">
       <h2>🔑 Bewaarcode</h2>
@@ -2236,10 +2230,8 @@ const ACTIES = {
   hernoem: () => { const v = $("#hernoem").value.trim(); if (v) { prof().name = v; bewaar(); render(); meld("Naam opgeslagen"); } },
   size: el => { const p = prof(); p.size = +el.dataset.size; p.pending = null; state.oefen = null; bewaar(); render(); },
   toggle: el => { const k = el.dataset.key; store.settings[k] = !store.settings[k]; bewaar(); el.setAttribute("aria-checked", store.settings[k]); if (k === "sound" && store.settings.sound) geluid("groep"); },
-  theme: el => { store.settings.theme = el.dataset.theme; bewaar(); render(); },
   kopthema: () => {
     store.settings.theme = effectiefDonker() ? "light" : "dark"; bewaar(); toepasThema();
-    document.querySelectorAll('[data-act="theme"]').forEach(b => b.setAttribute("aria-pressed", b.dataset.theme === store.settings.theme));
   },
   kopgeluid: () => { store.settings.sound = !store.settings.sound; bewaar(); verversKopKnoppen(); if (store.settings.sound) geluid("groep"); },
   maakcode: () => { state.code = maakCode(prof()); state.codeMelding = ""; render(); },
